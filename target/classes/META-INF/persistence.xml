@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+	<persistence-unit name="enviaEmail">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+		<class>entidade.ContaEmail</class>
+		<class>entidade.Email</class>
+		<class>entidade.EnviaEmail</class>
+		<class>entidade.ModeloEmail</class>
+		<class>entidade.ServidorEmail</class>
+		
+
+		<properties>
+			<property name="javax.persistence.jdbc.url"
+				value="jdbc:oracle:thin:@10.0.4.5:1521:TESTE" />
+			<property name="javax.persistence.jdbc.user"
+				value="intranet" />
+			<property name="javax.persistence.jdbc.password"
+				value="intr8n3te" />
+			<property name="javax.persistence.jdbc.driver"
+				value="oracle.jdbc.OracleDriver" />
+			<property name="hibernate.jdbc.time_zone" value="GMT+3" />
+			<property name="hibernate.dialect"
+				value="org.hibernate.dialect.OracleDialect" />
+			<property name="hibernate.show_sql" value="true" />
+			<property name="hibernate.format_sql" value="true" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
+
+		</properties>
+
+
+	</persistence-unit>
+</persistence>
