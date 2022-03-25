@@ -8,8 +8,8 @@ import util.JPAUtil;
 
 import java.lang.reflect.ParameterizedType;
 
-public class GenericoDAO<K, T>{
-	
+public class GenericoDAO<K, T> {
+
 	private EntityManager entityManager = JPAUtil.getEntityManager();
 
 	public GenericoDAO() {
@@ -23,8 +23,8 @@ public class GenericoDAO<K, T>{
 
 		} catch (Exception e) {
 
-			throw new Exception("Falha ao tentar persistir a entidade "
-					+ entidade.getClass() + " causa: " + e.getCause());
+			throw new Exception(
+					"Falha ao tentar persistir a entidade " + entidade.getClass() + " causa: " + e.getCause());
 		}
 
 	}
@@ -37,8 +37,8 @@ public class GenericoDAO<K, T>{
 
 		} catch (Exception e) {
 
-			throw new Exception("Falha ao tentar alterar a entidade "
-					+ entidade.getClass() + " causa: " + e.getCause());
+			throw new Exception(
+					"Falha ao tentar alterar a entidade " + entidade.getClass() + " causa: " + e.getCause());
 
 		}
 
@@ -47,14 +47,14 @@ public class GenericoDAO<K, T>{
 	public void deletar(T entidade) throws Exception {
 
 		try {
-			
+
 			T tempEntidade = entityManager.merge(entidade);
 			entityManager.remove(tempEntidade);
 
 		} catch (Exception e) {
 
-			throw new Exception("Falha ao tentar deletar a entidade "
-					+ entidade.getClass() + " causa: " + e.getMessage());
+			throw new Exception(
+					"Falha ao tentar deletar a entidade " + entidade.getClass() + " causa: " + e.getMessage());
 
 		}
 	}
@@ -70,9 +70,26 @@ public class GenericoDAO<K, T>{
 
 		} catch (Exception e) {
 
-			throw new Exception(
-					"Falha ao tentar recuperar a entidade pela chave " + chave
-							+ this.getClass() + " causa: " + e.getCause());
+			throw new Exception("Falha ao tentar recuperar a entidade pela chave " + chave + this.getClass()
+					+ " causa: " + e.getCause());
+		}
+
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<T> listarEmailsParaEnviar() throws Exception {
+
+		try {
+
+			List<T> listaObjetos = (List<T>) entityManager.createQuery(("FROM " + getTypeClass().getName() + " WHERE DTHRENVIO IS NULL"))
+					.getResultList();
+
+			return listaObjetos;
+
+		} catch (Exception e) {
+
+			throw new Exception("Falha ao tentar listar todos " + this.getClass() + " causa: " + e.getCause());
+
 		}
 
 	}
@@ -82,23 +99,22 @@ public class GenericoDAO<K, T>{
 
 		try {
 
-			List<T> listaObjetos = (List<T>) entityManager.createQuery(
-					("FROM " + getTypeClass().getName())).getResultList();
+			List<T> listaObjetos = (List<T>) entityManager.createQuery(("FROM " + getTypeClass().getName()))
+					.getResultList();
 
 			return listaObjetos;
 
 		} catch (Exception e) {
 
-			throw new Exception("Falha ao tentar listar todos "
-					+ this.getClass() + " causa: " + e.getCause());
+			throw new Exception("Falha ao tentar listar todos " + this.getClass() + " causa: " + e.getCause());
 
 		}
 
 	}
 
 	private Class<?> getTypeClass() {
-		Class<?> clazz = (Class<?>) ((ParameterizedType) this.getClass()
-				.getGenericSuperclass()).getActualTypeArguments()[1];
+		Class<?> clazz = (Class<?>) ((ParameterizedType) this.getClass().getGenericSuperclass())
+				.getActualTypeArguments()[1];
 		return clazz;
 	}
 

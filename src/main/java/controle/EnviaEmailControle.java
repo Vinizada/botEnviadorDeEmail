@@ -1,6 +1,5 @@
 package controle;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,107 +10,197 @@ import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 
+import dao.EnviaEmailDAO;
+import dao.ModeloEmailDAO;
 import entidade.ContaEmail;
-import entidade.Email;
+import entidade.EnviaEmail;
 import entidade.ModeloEmail;
 import entidade.ServidorEmail;
+import entidade.TipoVariavel;
 
 public class EnviaEmailControle {
 
 	private HtmlEmail htmlEmail;
-	private List<Email> emailsEnviar;
 	private ModeloEmail modelo;
 	private ContaEmail conta;
-	private Email email;
 	private ServidorEmail servidor;
+	private Collection<InternetAddress> contasParaEnviar;
+	private EnviaEmailDAO emailDAO = new EnviaEmailDAO();
+	private ModeloEmailDAO modeloDAO = new ModeloEmailDAO();
 
 	public void enviar() {
 
-		emailsEnviar = new ArrayList<>();
+		try {
 
-		Email emailTeste = new Email("TESTE");
+			// COMEÇA A ENTRAR AS VARIAVEIS QUE VEM DA TB_EMAILS
 
-		emailsEnviar.add(emailTeste);
+			List<EnviaEmail> listaEmailsParaEnviar = emailDAO.listarEmailsParaEnviar();
 
-		for (Email emailTemp : emailsEnviar) {
+			for (EnviaEmail email : listaEmailsParaEnviar) {
 
-			try {
-				
-				this.email = emailTemp;
-
-				modelo   = new ModeloEmail("TESTE");
-				conta    = new ContaEmail("TESTE");
+				conta = new ContaEmail("TESTE");
 				servidor = new ServidorEmail("TESTE");
 
 				htmlEmail = new HtmlEmail();
-				
+
 				htmlEmail.setStartTLSEnabled(false);
 
-				
-				//htmlEmail.setHostName("diferpan-com-br.mail.protection.outlook.com");
+				// htmlEmail.setHostName("diferpan-com-br.mail.protection.outlook.com");
 				htmlEmail.setHostName(servidor.getHostname());
 
 				htmlEmail.setSmtpPort(servidor.getPorta().intValue());
-				
 
-				//htmlEmail.setAuthenticator(new DefaultAuthenticator("luiz.neto@diferpan.com.br", "lrn2027@"));
+				// htmlEmail.setAuthenticator(new
+				// DefaultAuthenticator("luiz.neto@diferpan.com.br", "lrn2027@"));
 				htmlEmail.setAuthenticator(new DefaultAuthenticator(conta.getEmail(), conta.getSenha()));
-				
-				
+
+				this.modelo = new ModeloEmail();
 
 				htmlEmail.setFrom(conta.getEmail(), conta.getNome());
-			
+
+				this.modelo = modeloDAO.buscar(email.getId());
 
 				htmlEmail.setSubject(modelo.getTitulo());
-				
-				// temos que montar o texto
-				htmlEmail.setHtmlMsg(modelo.getTexto());
-				
-				// insere os contatos
-				this.insereContatos();
+
+				htmlEmail.setHtmlMsg(retornaTexto(email));
+
+				retornaContas(email);
 
 				htmlEmail.send();
-				
+
 				System.out.println("E-mail enviado!");
 
-			} catch (Exception e) {
-
-				e.printStackTrace();
-				
 			}
+
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
 
 		}
 
 	}
-	
 
-	private void insereContatos() throws UnsupportedEncodingException, EmailException {
-		
-		
-		Collection<InternetAddress> listaEmail = new ArrayList<>();
-		
-		String[] contatos = email.getEmails().split(";");
-		
-		for(int x = 0; x < contatos.length; x++){
-			
-			String[] contato = contatos[x].split("#");
-			
-			InternetAddress endereco = new InternetAddress(contato[1], contato[0]);
-			
-			listaEmail.add(endereco);
-            
-        }
-		
-		htmlEmail.setTo(listaEmail);
-		
+	private String retornaTexto(EnviaEmail emailParaEnviar) throws Exception {
+
+		String texto = modelo.getTexto();
+
+		String[] variaveis = emailParaEnviar.getEmails().split(";");
+
+		for (int x = 0; x < variaveis.length; x++) {
+
+			String[] variavel = variaveis[x].split("#");
+
+			texto = trataVariavel(variavel[0], variavel[1], "TEXTO", texto);
+
+		}
+
+		return texto;
+
 	}
 
-	public List<Email> getEmailsEnviar() {
-		return emailsEnviar;
+	private String trataVariavel(String tag, String valor, String tipo, String texto) throws EmailException {
+
+		if (tipo == TipoVariavel.TEXTO.toString()) {
+
+			texto = alteraVariavelTexto(tag, valor, texto);
+
+		} else if (tipo == TipoVariavel.LINK.toString()) {
+
+			texto = alteraVariavelLink(tag, valor, texto);
+
+		}
+
+//		} else if (tipo == TipoVariavel.IMAGEM.toString()) {
+//
+//			texto = alteraVariavelImagem(variavel, texto);
+//
+//		} else if (tipo == TipoVariavel.ANEXO.toString()) {
+//
+//			adicionaAnexo(variavel, textoVariavel);
+//
+//		}
+
+		return texto;
+
 	}
 
-	public void setEmailsEnviar(List<Email> emailsEnviar) {
-		this.emailsEnviar = emailsEnviar;
+//	private void adicionaAnexo(VariavelModelo variavel, String path) throws EmailException {
+//
+//		EmailAttachment anexoEmail = new EmailAttachment();
+//		
+//		String valores[] = path.split(";");
+//
+//		anexoEmail.setPath(valores[0]);
+//		anexoEmail.setDisposition(EmailAttachment.ATTACHMENT);
+//		anexoEmail.setDescription(variavel.getDescricao());
+//		anexoEmail.setName(valores[1]);
+//
+//		htmlEmail.attach(anexoEmail);
+//
+//	}
+
+	private String alteraVariavelTexto(String chave, String valor, String texto) {
+
+		return texto.replace(chave, valor);
+
 	}
+
+	private String alteraVariavelLink(String tag, String valor, String texto) {
+
+		return texto.replace(tag, "<a href=" + valor + ">" + valor + "</a>");
+
+	}
+
+//	private String alteraVariavelImagem(VariavelModelo variavel, String texto) {
+//
+//		URL url = null;
+//
+//		String cid = null;
+//
+//		try {
+//
+//			url = new URL(variavel.getValor());
+//
+//			cid = htmlEmail.embed(url, variavel.getTag());
+//
+//			texto = texto.replace(variavel.getTag(), "<img src=\"cid:" + cid + "\">");
+//
+//		} catch (Exception e) {
+//
+//		}
+//
+//		return texto;
+//
+//	}
+
+	private void retornaContas(EnviaEmail emailParaEnviar) {
+
+		try {
+			
+			this.contasParaEnviar = new ArrayList<InternetAddress>();
+
+			String[] contatos = emailParaEnviar.getEmails().split(";");
+
+			for (int x = 0; x < contatos.length; x++) {
+
+				String[] contato = contatos[x].split("#");
+
+				InternetAddress endereco = new InternetAddress(contato[1], contato[0]);
+
+				this.contasParaEnviar.add(endereco);
+
+			}
+
+			htmlEmail.setTo(this.contasParaEnviar);
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+
+		}
+
+	}
+
 
 }

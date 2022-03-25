@@ -6,7 +6,6 @@
 	<persistence-unit name="enviaEmail">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<class>entidade.ContaEmail</class>
-		<class>entidade.Email</class>
 		<class>entidade.EnviaEmail</class>
 		<class>entidade.ModeloEmail</class>
 		<class>entidade.ServidorEmail</class>

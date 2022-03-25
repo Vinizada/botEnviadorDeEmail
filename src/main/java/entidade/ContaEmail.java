@@ -21,7 +21,7 @@ public class ContaEmail {
 		super();
 		this.id = 1L;
 		this.email = "luiz.neto@diferpan.com.br";
-		this.senha = "lrn2027@";
+		this.senha = "lrn2028@";
 		this.nome = "Escrit�rio de Projetos";
 		this.servidorId = 1L;
 	}
